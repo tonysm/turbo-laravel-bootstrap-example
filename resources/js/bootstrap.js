@@ -28,5 +28,28 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 //     broadcaster: 'pusher',
 //     key: process.env.MIX_PUSHER_APP_KEY,
 //     cluster: process.env.MIX_PUSHER_APP_CLUSTER,
-//     forceTLS: true
+//     forceTLS: process.env.MIX_PUSHER_APP_USE_SSL === "true",
+//     disableStats: true,
+//     wsHost: process.env.MIX_PUSHER_APP_HOST,
+//     wsPort: process.env.MIX_PUSHER_APP_PORT || null,
 // });
+
+// document.addEventListener('turbo:before-fetch-request', (e) => {
+//     e.detail.fetchOptions.headers['X-Socket-ID'] = window.Echo.socketId();
+// });
+
+/**
+ * Turbo turns forms and links into AJAX requests using `fetch`. Non-GET form requests in Laravel need a special kind of value called
+ * "The CSRF Token" to be allowed to enter your app. When rendering forms in background, such as when you're broadcasting HTML to
+ * all users which contain a form on it, we don't have the receiving users' tokens, so we need to add it to the fetch request.
+ */
+
+let token = document.head.querySelector('meta[name="csrf-token"]');
+
+document.addEventListener('turbo:before-fetch-request', (e) => {
+    if (token) {
+        e.detail.fetchOptions.headers['X-CSRF-Token'] = token.content;
+    } else {
+        console.error('CSRF token not found: https://laravel.com/docs/csrf#csrf-x-csrf-token');
+    }
+});
